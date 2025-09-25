@@ -7,8 +7,12 @@
   <style>
     :root{
       --bg:#0f172a; --panel:#111827; --text:#e5e7eb; --muted:#94a3b8; --grid:#233046;
-      --line:#22d3ee; --ma:#a78bfa; --line-per:#f59e0b;
-      --bar-std:#22d3ee; --bar-giant:#38bdf8; --bar-mini:#60a5fa;
+      --line:#22d3ee; --ma:#a78bfa; --line-per:#38bdf8;
+      /* 指定長條色：標準=紅、巨無霸=藍、迷你=綠 */
+      --bar-standard:#ef4444;  /* red-500 */
+      --bar-giant:#38bdf8; /* blue-400 */
+      --bar-mini:#22c55e;      /* green-500 */
+
       --border:rgba(148,163,184,.2); --thead:rgba(255,255,255,.03); --highlight:rgba(255,255,255,.06);
       --toast:#111827cc;
     }
@@ -127,7 +131,7 @@
       </div>
     </section>
 
-    <!-- 圖2：店×機 -->
+    <!-- 圖2：店×機（長條色依類別：紅/黃/綠） -->
     <section class="panel">
       <div class="title-row">
         <div class="title"><span class="badge">店×機：投幣量（HKD）＋貨品資訊</span></div>
@@ -151,6 +155,8 @@
             <option value="name-desc">機器名稱：Z→A</option>
             <option value="total-desc">投幣量：高→低</option>
             <option value="total-asc">投幣量：低→高</option>
+            <option value="goods-asc">上架貨品：A→Z</option>
+            <option value="goods-desc">上架貨品：Z→A</option>
             <option value="price-asc">單價：低→高</option>
             <option value="price-desc">單價：高→低</option>
             <option value="listed-asc">上架日期：早→晚</option>
@@ -218,6 +224,8 @@
             <option value="cat-asc">類別 A→Z</option>
             <option value="sum-desc">期間總HKD 高→低</option>
             <option value="sum-asc">期間總HKD 低→高</option>
+            <option value="avg-desc">期間平均HKD 高→低</option>
+            <option value="avg-asc">期間平均HKD 低→高</option>
             <option value="max-desc">最大單日HKD 高→低</option>
             <option value="max-asc">最大單日HKD 低→高</option>
           </select>
@@ -319,12 +327,9 @@
         arr.slice(1).forEach(r=>{
           const key=norm(r[im]); if(!key) return;
           const listedStd=parseExcelDate(r[il])||'';
-          machineMeta.set(key,{
-            category: normalizeCategory(norm(r[ic]||'')),
-            goods: norm(r[ig]||''),
-            price: norm(r[ip]||''),
-            listed: listedStd
-          });
+          // 類別收斂至三種
+          const cat = normalizeCategory(norm(r[ic]||''));
+          machineMeta.set(key,{category:cat, goods:norm(r[ig]||''), price:norm(r[ip]||''), listed:listedStd});
         });
       }
 
@@ -367,7 +372,7 @@
       return recs;
     }
 
-    // 類別只保留三種：標準機、巨無霸、迷你機
+    // 類別三種
     function normalizeCategory(raw){
       const r = norm(raw);
       if(/巨無霸|giant|jumbo|mbx/i.test(r)) return '巨無霸';
@@ -410,7 +415,7 @@
       renderAll();
     }
 
-    // Tooltip工具
+    // Tooltip
     function showTip(id,html,x,y){ const el=document.getElementById(id); el.innerHTML=html; el.style.left=x+'px'; el.style.top=y+'px'; el.style.display='block'; }
     function hideTip(id){ document.getElementById(id).style.display='none'; }
 
@@ -438,32 +443,27 @@
       draw(){
         const {ctx}=this; const dpr=window.devicePixelRatio||1, r=this.c.getBoundingClientRect(); this.c.width=Math.round(r.width*dpr); this.c.height=Math.round(r.height*dpr); ctx.scale(dpr,dpr);
         ctx.clearRect(0,0,r.width,r.height); const {l,r:rr,t,b}=this.p; const grid='#233046';
-        // grid
         ctx.strokeStyle=grid; ctx.beginPath(); for(const y of this._ticks(this.yMin,this.yMax,5)){ const py=this._y(y); ctx.moveTo(l,py); ctx.lineTo(r.width-rr,py);} ctx.stroke();
-        // y labels
         ctx.fillStyle='#94a3b8'; ctx.font='12px ui-sans-serif, system-ui'; ctx.textAlign='right'; ctx.textBaseline='middle';
         for(const y of this._ticks(this.yMin,this.yMax,5)){ ctx.fillText(fmt(Math.round(y)), l-8, this._y(y)); }
-        // x labels
         ctx.textAlign='center'; ctx.textBaseline='top';
         for(const p of this.points){ const d=new Date(p.x); ctx.fillText(`${d.getUTCMonth()+1}/${d.getUTCDate()}`, this._x(p.x), r.height-b+6); }
-        // total
         ctx.strokeStyle='#22d3ee'; ctx.lineWidth=2; ctx.beginPath(); let s=false;
         for(const p of this.points){ const x=this._x(p.x), y=this._y(p.yTotal); if(!s){ctx.moveTo(x,y); s=true;} else ctx.lineTo(x,y);} ctx.stroke();
-        // per
         ctx.strokeStyle='#f59e0b'; ctx.lineWidth=2; ctx.setLineDash([4,2]); ctx.beginPath(); s=false;
         for(const p of this.points){ const x=this._x(p.x), y=this._y(p.yPer); if(!s){ctx.moveTo(x,y); s=true;} else ctx.lineTo(x,y);} ctx.stroke(); ctx.setLineDash([]);
-        // MA
         if(this.showMA){ const base=this.points, k=7, ma=[]; for(let i=0;i<base.length;i++){ const a=Math.max(0,i-k+1); const part=base.slice(a,i+1); const avg=part.reduce((s,p)=>s+p.yTotal,0)/part.length; ma.push({x:base[i].x,y:avg}); }
           ctx.strokeStyle='#a78bfa'; ctx.setLineDash([6,6]); ctx.lineWidth=1.6; ctx.beginPath(); s=false;
           for(const p of ma){ const x=this._x(p.x), y=this._y(p.y); if(!s){ctx.moveTo(x,y); s=true;} else ctx.lineTo(x,y);} ctx.stroke(); ctx.setLineDash([]); }
-        // crosshair
         if(this._hoverIndex!=null){ const p=this.points[this._hoverIndex]; const x=this._x(p.x); ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(x,t); ctx.lineTo(x,r.height-b); ctx.stroke(); ctx.setLineDash([]); }
       }
     }
 
-    // 長條圖
+    // 長條圖（顏色：標準=紅、巨無霸=黃、迷你=綠）
     class BarChart{
-      constructor(c){ this.c=c; this.ctx=c.getContext('2d'); this.p={l:70,r:20,t:18,b:54}; this.data=[]; this.maxY=1; this.threshold=null; new ResizeObserver(()=>this.draw()).observe(c); this._bind(); }
+      constructor(c){ this.c=c; this.ctx=c.getContext('2d'); this.p={l:70,r:20,t:18,b:54}; this.data=[]; this.maxY=1; this.threshold=null; new ResizeObserver(()=>this.draw()).observe(c);
+        this._bind();
+      }
       setData(d){ this.data=Array.isArray(d)?d.slice():[]; this.maxY=Math.max(1,...this.data.map(x=>x.total||0))*1.1; this.draw(); }
       setThreshold(v){ this.threshold=(v==null||isNaN(v))?null:Number(v); this.draw(); }
       _y(v){ const r=this.c.getBoundingClientRect(), h=r.height-this.p.t-this.p.b; return this.p.t+(1-v/this.maxY)*h; }
@@ -481,24 +481,21 @@
       draw(){
         const ctx=this.ctx, dpr=window.devicePixelRatio||1, r=this.c.getBoundingClientRect(); this.c.width=Math.round(r.width*dpr); this.c.height=Math.round(r.height*dpr); ctx.scale(dpr,dpr); ctx.clearRect(0,0,r.width,r.height);
         const {l,r:rr,t,b}=this.p, plotW=r.width-l-rr, plotH=r.height-t-b;
-        // grid
         ctx.strokeStyle='#233046'; ctx.beginPath(); for(const y of this._ticks(0,this.maxY,5)){ const py=this._y(y); ctx.moveTo(l,py); ctx.lineTo(r.width-rr,py);} ctx.stroke();
-        // y labels
         ctx.fillStyle='#94a3b8'; ctx.font='12px ui-sans-serif, system-ui'; ctx.textAlign='right'; ctx.textBaseline='middle';
         for(const y of this._ticks(0,this.maxY,5)){ ctx.fillText(fmt(Math.round(y)), l-8, this._y(y)); }
         if(!this.data.length){ ctx.fillStyle='#e5e7eb'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('無資料', r.width/2, r.height/2); return; }
-        // threshold
         if(this.threshold!=null){ const y=this._y(this.threshold); ctx.save(); ctx.strokeStyle='rgba(239,68,68,.9)'; ctx.setLineDash([6,6]); ctx.beginPath(); ctx.moveTo(l,y); ctx.lineTo(r.width-rr,y); ctx.stroke(); ctx.restore(); }
-        // bars
         const n=this.data.length, barW=(plotW/n)*0.78, gap=(plotW/n)*0.22; let x=l+gap/2;
-        const colorOf=cat=> cat==='巨無霸'?'#38bdf8':cat==='迷你機'?'#60a5fa':'#22d3ee';
+        const colorOf=cat=> cat==='巨無霸'?getComputedStyle(document.documentElement).getPropertyValue('--bar-giant').trim() :
+                               cat==='迷你機'?getComputedStyle(document.documentElement).getPropertyValue('--bar-mini').trim() :
+                               getComputedStyle(document.documentElement).getPropertyValue('--bar-standard').trim();
         for(let i=0;i<n;i++){
           const d=this.data[i]; const bh=plotH*(Number(d.total||0)/this.maxY), y=t+(plotH-bh);
           ctx.fillStyle=colorOf(d.category); roundRect(ctx,x,y,barW,bh,6); ctx.fill();
           if(i===this._hover){ ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=1; roundRect(ctx,x,y,barW,bh,6); ctx.stroke(); }
           x+=barW+gap;
         }
-        // x labels
         ctx.fillStyle='#94a3b8'; ctx.textAlign=n>18?'right':'center'; ctx.textBaseline='top'; x=l+gap/2;
         for(let i=0;i<n;i++){ const d=this.data[i]; const lx=x+barW/2, ly=r.height-b+6;
           if(n>18){ ctx.save(); ctx.translate(lx,ly); ctx.rotate(-Math.PI/4); ctx.fillText(String(d.name),0,0); ctx.restore(); } else ctx.fillText(String(d.name),lx,ly);
@@ -539,7 +536,7 @@
         for(const y of this._ticks(this.yMin,this.yMax,5)){ ctx.fillText(fmt(Math.round(y)), l-8, this._y(y)); }
         ctx.textAlign='center'; ctx.textBaseline='top';
         const base=this.series[0]?.points||[]; for(const p of base){ const d=new Date(p.x); ctx.fillText(`${d.getUTCMonth()+1}/${d.getUTCDate()}`, this._x(p.x), r.height-b+6); }
-        const palette=['#22d3ee','#38bdf8','#60a5fa','#a78bfa','#fb7185','#f97316','#10b981','#06b6d4','#ef4444','#eab308','#14b8a6','#8b5cf6'];
+        const palette=['#22d3ee','#f59e0b','#22c55e','#a78bfa','#fb7185','#f97316','#10b981','#06b6d4','#ef4444','#eab308','#14b8a6','#8b5cf6'];
         this.series.forEach((s,i)=>{ ctx.strokeStyle=palette[i%palette.length]; ctx.lineWidth=2; ctx.beginPath(); let st=false; for(const p of s.points){ const x=this._x(p.x), y=this._y(p.y); if(!st){ctx.moveTo(x,y); st=true;} else ctx.lineTo(x,y);} ctx.stroke(); });
         if(this._hoverX!=null){ ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(this._hoverX,t); ctx.lineTo(this._hoverX,r.height-b); ctx.stroke(); ctx.setLineDash([]); }
       }
@@ -807,7 +804,6 @@
           tip.innerHTML=`${formatOutDate(d)}<br/>HKD ${fmt(Math.round(h))}<br/>上架：${goods||'—'}`;
           tip.style.left=xTo(best)+'px'; tip.style.top=(yTo(yVals[best])-8)+'px'; tip.style.display='block';
 
-          // 重繪 + 十字線
           ctx.clearRect(0,0,W,H);
           ctx.strokeStyle=grid; ctx.lineWidth=1; ctx.beginPath();
           for(let i=0;i<=ticks;i++){ const y=p.t + (i/ticks)*(H-p.t-p.b); ctx.moveTo(p.l,y); ctx.lineTo(W-p.r,y);} ctx.stroke();
