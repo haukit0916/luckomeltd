@@ -8,7 +8,7 @@
     :root{
       --bg:#0f172a; --panel:#111827; --text:#e5e7eb; --muted:#94a3b8; --grid:#233046;
       --line:#22d3ee; --ma:#a78bfa; --line-per:#f59e0b;
-      --bar-std:#22d3ee; --bar-stdx:#1dd1a1; --bar-giant:#38bdf8; --bar-giantx:#34d399; --bar-mini:#60a5fa; --bar-minix:#93c5fd;
+      --bar-std:#22d3ee; --bar-giant:#38bdf8; --bar-mini:#60a5fa;
       --border:rgba(148,163,184,.2); --thead:rgba(255,255,255,.03); --highlight:rgba(255,255,255,.06);
       --toast:#111827cc;
     }
@@ -25,7 +25,7 @@
     .title{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
     .badge{ display:inline-flex; align-items:center; gap:8px; background:rgba(167,139,250,.08); border:1px solid rgba(167,139,250,.35);
       color:#e9d5ff; padding:6px 10px; border-radius:999px; font-size:12px; }
-    .controls, .table-controls{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .controls{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     label{ font-size:12px; color:var(--muted); }
     input[type="number"], input[type="search"], input[type="date"], select{
       appearance:none; border:1px solid var(--border); background:#1f2937; color:#e5e7eb;
@@ -36,6 +36,7 @@
     .btn{ appearance:none; border:1px solid var(--border); background:rgba(255,255,255,.04); color:#e5e7eb;
       padding:8px 10px; border-radius:10px; font-size:13px; cursor:pointer; }
     .btn.primary{ background:linear-gradient(180deg, rgba(34,211,238,.25), rgba(34,211,238,.08)); border-color: rgba(34,211,238,.55); }
+    .pill{ padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid var(--border); font-size:12px; color:#cbd5e1; }
     .kpis{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:8px 0; }
     .kpi{ background:rgba(34,211,238,.06); border:1px solid rgba(34,211,238,.35); border-radius:10px; padding:10px; }
     .kpi h3{ margin:0; font-size:12px; color:var(--muted); font-weight:500; }
@@ -44,11 +45,10 @@
     canvas{ width:100% !important; height:100% !important; }
     .table-wrap{ overflow:auto; border:1px solid var(--border); border-radius:10px; max-height:360px; background:rgba(0,0,0,.06); }
     table{ width:100%; border-collapse:collapse; }
-    th, td{ border-bottom:1px solid var(--border); padding:8px 10px; text-align:left; font-size:12px; color:var(--text); vertical-align:top; }
+    th, td{ border-bottom:1px solid var(--border); padding:8px 10px; text-align:left; font-size:12px; color:#e5e7eb; vertical-align:top; }
     th{ color:#cbd5e1; background:var(--thead); position:sticky; top:0; z-index:1; }
     tbody tr:nth-child(even){ background:rgba(255,255,255,.02); }
     tbody tr:hover{ background:var(--highlight); }
-    .pill{ padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid var(--border); font-size:12px; color:#cbd5e1; }
 
     /* Facet grid */
     .facet-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
@@ -58,18 +58,16 @@
     .facet-canvas{ width:100%; height:120px; display:block; }
     .facet-pager{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 
-    /* Tooltip + Toast */
     .tooltip{ position:absolute; pointer-events:none; background:rgba(17,24,39,.96); color:#e5e7eb; border:1px solid rgba(148,163,184,.35);
       border-radius:8px; padding:6px 8px; font-size:12px; white-space:nowrap; transform:translate(-50%,-110%); z-index:100; display:none; }
-    .toast{ position:fixed; right:12px; top:12px; background:var(--toast); backdrop-filter: blur(4px); color:#e5e7eb; border:1px solid rgba(148,163,184,.35);
-      padding:10px 12px; border-radius:10px; font-size:13px; z-index:9999; opacity:0; transform:translateY(-10px); transition: all .25s ease; }
+    .toast{ position:fixed; right:12px; top:12px; background:#111827cc; color:#e5e7eb; border:1px solid rgba(148,163,184,.35);
+      padding:10px 12px; border-radius:10px; font-size:13px; z-index:9999; opacity:0; transform:translateY(-10px); transition:all .25s ease; }
     .toast.show{ opacity:1; transform:translateY(0); }
 
     @media (max-width:860px){
       .kpis{ grid-template-columns:1fr; }
       .chart-wrap{ aspect-ratio: 4/3; min-height:240px; }
       .table-wrap{ max-height:300px; }
-      .controls > * { min-width: unset; }
       input[type="file"]{ width:100%; }
     }
   </style>
@@ -129,7 +127,7 @@
       </div>
     </section>
 
-    <!-- 圖2 -->
+    <!-- 圖2：店×機 -->
     <section class="panel">
       <div class="title-row">
         <div class="title"><span class="badge">店×機：投幣量（HKD）＋貨品資訊</span></div>
@@ -138,11 +136,8 @@
           <select id="filterSeries">
             <option value="ALL">全部</option>
             <option value="標準機">標準機</option>
-            <option value="標準機(貴)">標準機(貴)</option>
             <option value="巨無霸">巨無霸</option>
-            <option value="巨無霸(貴)">巨無霸(貴)</option>
             <option value="迷你機">迷你機</option>
-            <option value="迷你機(貴)">迷你機(貴)</option>
           </select>
           - 顯示
           <select id="passFilter">
@@ -156,8 +151,6 @@
             <option value="name-desc">機器名稱：Z→A</option>
             <option value="total-desc">投幣量：高→低</option>
             <option value="total-asc">投幣量：低→高</option>
-            <option value="goods-asc">上架貨品：A→Z</option>
-            <option value="goods-desc">上架貨品：Z→A</option>
             <option value="price-asc">單價：低→高</option>
             <option value="price-desc">單價：高→低</option>
             <option value="listed-asc">上架日期：早→晚</option>
@@ -168,6 +161,9 @@
             <option>全部</option><option>5</option><option>10</option><option>20</option><option>50</option>
           </select>
           <input id="searchBox" type="search" placeholder="搜尋機器名稱..." />
+          - 單價篩選
+          <label>下限(含) <input id="priceMin" type="number" inputmode="decimal" placeholder="例：20" style="width:90px"></label>
+          <label>上限(含) <input id="priceMax" type="number" inputmode="decimal" placeholder="例：50" style="width:90px"></label>
           <span class="pill" id="autoThresholdPill">合格線：—</span>
           <button id="resetBar" class="btn">重置</button>
         </div>
@@ -211,11 +207,8 @@
           <select id="trendCat">
             <option value="ALL">全部</option>
             <option value="標準機">標準機</option>
-            <option value="標準機(貴)">標準機(貴)</option>
             <option value="巨無霸">巨無霸</option>
-            <option value="巨無霸(貴)">巨無霸(貴)</option>
             <option value="迷你機">迷你機</option>
-            <option value="迷你機(貴)">迷你機(貴)</option>
           </select>
           <input id="trendSearch" type="search" placeholder="搜尋機器名稱..." />
           <label>排序</label>
@@ -225,8 +218,6 @@
             <option value="cat-asc">類別 A→Z</option>
             <option value="sum-desc">期間總HKD 高→低</option>
             <option value="sum-asc">期間總HKD 低→高</option>
-            <option value="avg-desc">期間平均HKD 高→低</option>
-            <option value="avg-asc">期間平均HKD 低→高</option>
             <option value="max-desc">最大單日HKD 高→低</option>
             <option value="max-asc">最大單日HKD 低→高</option>
           </select>
@@ -276,54 +267,49 @@
   </script>
 
   <script>
-    // ========= 工具 =========
+    // 工具
     const HKD_RATE=5;
     const fmt=n=>Number(n||0).toLocaleString('zh-Hant-TW');
     const norm=s=>String(s||'').trim();
     function parseExcelDate(v){
-      if(typeof v==='number' && isFinite(v)){ const d = new Date(Date.UTC(1899,11,30) + Math.round(v)*86400000); return d.toISOString().slice(0,10); }
-      if(v instanceof Date && !isNaN(v.valueOf())){ const d=v; return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString().slice(0,10); }
-      const s = String(v||'').trim();
-      const clean = s.replace(/[年\.]/g,'/').replace(/[月]/g,'/').replace(/[日]/g,'').replace(/^\'+/,'').replace(/\s+/g,'');
-      const m = clean.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-      if(m){ const y=+m[1], mo=Math.min(Math.max(+m[2],1),12)-1, d=Math.min(Math.max(+m[3],1),31); const z=new Date(Date.UTC(y,mo,d)); return z.toISOString().slice(0,10); }
-      const t=Date.parse(clean); if(!isNaN(t)){ const d=new Date(t); return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString().slice(0,10); }
+      if(typeof v==='number' && isFinite(v)){ const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000); return d.toISOString().slice(0,10); }
+      if(v instanceof Date && !isNaN(v.valueOf())){ const d=v; return new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())).toISOString().slice(0,10); }
+      const s=String(v||'').trim(); const clean=s.replace(/[年\.]/g,'/').replace(/[月]/g,'/').replace(/[日]/g,'').replace(/^\'+/,'').replace(/\s+/g,'');
+      const m=clean.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/); if(m){ const y=+m[1], mo=Math.min(Math.max(+m[2],1),12)-1, d=Math.min(Math.max(+m[3],1),31); const z=new Date(Date.UTC(y,mo,d)); return z.toISOString().slice(0,10); }
+      const t=Date.parse(clean); if(!isNaN(t)){ const d=new Date(t); return new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())).toISOString().slice(0,10); }
       return null;
     }
     function formatOutDate(iso){ if(!iso) return ''; const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/); return m?`${m[1]}/${m[2]}/${m[3]}`:String(iso); }
-    const toast = (msg)=>{ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=> el.classList.remove('show'), 2200); };
-    const colorVars=()=>{ const get=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();
-      return { line:get('--line')||'#22d3ee', per:get('--line-per')||'#f59e0b', grid:get('--grid')||'#233046',
-        cStd:get('--bar-std')||'#22d3ee', cStdX:get('--bar-stdx')||'#1dd1a1', cGiant:get('--bar-giant')||'#38bdf8', cGiantX:get('--bar-giantx')||'#34d399', cMini:get('--bar-mini')||'#60a5fa', cMiniX:get('--bar-minix')||'#93c5fd' };
-    };
+    const toast=(msg)=>{ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=> el.classList.remove('show'), 2200); };
 
-    // ========= 狀態 =========
-    const stores = new Map(); // store -> {dates:Set, byDate, byMachine}
-    const storeMachines = new Map(); // store -> machines
-    let itemsDict=new Map(), machineMeta=new Map();
+    // 狀態
+    const stores=new Map();           // store -> {dates:Set, byDate, byMachine}
+    const storeMachines=new Map();    // store -> machines
+    let itemsDict=new Map();          // code -> name
+    let machineMeta=new Map();        // machine_name -> {category, goods, price, listed}
     let currentStore=null, range={from:null,to:null};
-    let thresholdHKD=null; // 新合格線（機均×日數）
+    let thresholdHKD=null;            // 合格線（機均×日數）
 
-    // ========= 解析 XLSX =========
+    // 解析 XLSX
     async function parseXlsx(file){
-      const XLSX = await loadXLSX();
-      const wb = XLSX.read(await file.arrayBuffer(), {type:'array'});
+      const XLSX=await loadXLSX();
+      const wb = XLSX.read(await file.arrayBuffer(),{type:'array'});
 
       // Items
-      const itemsName = wb.SheetNames.find(n=>/^items$/i.test(n) || /物資/i.test(n));
+      const itemsName=wb.SheetNames.find(n=>/^items$/i.test(n)||/物資/i.test(n));
       if(itemsName){
-        const arr = XLSX.utils.sheet_to_json(wb.Sheets[itemsName], {header:1, raw:true, defval:''});
+        const arr=XLSX.utils.sheet_to_json(wb.Sheets[itemsName],{header:1,raw:true,defval:''});
         const h=arr[0]?.map(x=>norm(x).toLowerCase())||[];
         const ic=h.findIndex(x=>['code','編號','物資編號','stockno','stock no','id'].includes(x));
         const iname=h.findIndex(x=>['name','品名','名稱','item name','物資名稱'].includes(x));
-        if(ic>-1 && iname>-1) itemsDict = new Map(arr.slice(1).map(r=>[norm(r[ic]), norm(r[iname])]).filter(([a,b])=>a&&b));
+        if(ic>-1 && iname>-1) itemsDict=new Map(arr.slice(1).map(r=>[norm(r[ic]), norm(r[iname])]).filter(([a,b])=>a&&b));
       }
 
       // MachinesMeta
-      const metaName = wb.SheetNames.find(n=>/^machinesmeta$/i.test(n) || /meta/i.test(n));
+      const metaName=wb.SheetNames.find(n=>/^machinesmeta$/i.test(n) || /meta/i.test(n));
       machineMeta.clear();
       if(metaName){
-        const arr = XLSX.utils.sheet_to_json(wb.Sheets[metaName], {header:1, raw:true, defval:''});
+        const arr=XLSX.utils.sheet_to_json(wb.Sheets[metaName],{header:1,raw:true,defval:''});
         const h=arr[0]?.map(x=>norm(x).toLowerCase())||[];
         const im=h.findIndex(x=>['machine_name','機台號','機器','name','machine'].includes(x));
         const ic=h.findIndex(x=>['category','分類','系列','機型'].includes(x));
@@ -332,32 +318,37 @@
         const il=h.findIndex(x=>['listed','上架日期','上架','list_date','on_shelf'].includes(x));
         arr.slice(1).forEach(r=>{
           const key=norm(r[im]); if(!key) return;
-          const listedStd = parseExcelDate(r[il]) || '';
-          machineMeta.set(key, {category:norm(r[ic]||''), goods:norm(r[ig]||''), price:norm(r[ip]||''), listed: listedStd});
+          const listedStd=parseExcelDate(r[il])||'';
+          machineMeta.set(key,{
+            category: normalizeCategory(norm(r[ic]||'')),
+            goods: norm(r[ig]||''),
+            price: norm(r[ip]||''),
+            listed: listedStd
+          });
         });
       }
 
       // StoresMachines
       storeMachines.clear();
-      const smName = wb.SheetNames.find(n=>/^storesmachines$/i.test(n));
+      const smName=wb.SheetNames.find(n=>/^storesmachines$/i.test(n));
       if(smName){
-        const arr = XLSX.utils.sheet_to_json(wb.Sheets[smName], {header:1, raw:true, defval:''});
+        const arr=XLSX.utils.sheet_to_json(wb.Sheets[smName],{header:1,raw:true,defval:''});
         const h=arr[0]?.map(x=>norm(x).toLowerCase())||[];
         const is=h.findIndex(x=>['store','門市','門市名稱','店','分店'].includes(x));
         const im=h.findIndex(x=>['machines','機台數量','機器數','台數'].includes(x));
         if(is>-1 && im>-1){
           arr.slice(1).forEach(r=>{
-            const st = norm(r[is]); const mv = Number(String(r[im]).replace(/[^\d.\-]/g,''))||0;
-            if(st) storeMachines.set(st, mv);
+            const st=norm(r[is]); const mv=Number(String(r[im]).replace(/[^\d.\-]/g,''))||0;
+            if(st) storeMachines.set(st,mv);
           });
         }
       }
 
       // RawLog
-      const rawName = wb.SheetNames.find(n=>/^rawlog$/i.test(n)) || wb.SheetNames[0];
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[rawName], {header:1, raw:true, defval:''});
-      const header = rows[0]?.map(x=>norm(x).toLowerCase())||[];
-      const idx = {
+      const rawName=wb.SheetNames.find(n=>/^rawlog$/i.test(n))||wb.SheetNames[0];
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[rawName],{header:1,raw:true,defval:''});
+      const header=rows[0]?.map(x=>norm(x).toLowerCase())||[];
+      const idx={
         date: header.findIndex(h=> ['統計日期','日期','date','统计日期'].includes(h)),
         machine: header.findIndex(h=> ['機台號','機台編號','機器','name','machine','機台'].includes(h)),
         store: header.findIndex(h=> ['門市名稱','門市','店','分店','store'].includes(h)),
@@ -376,11 +367,19 @@
       return recs;
     }
 
-    // 映射/推斷
+    // 類別只保留三種：標準機、巨無霸、迷你機
+    function normalizeCategory(raw){
+      const r = norm(raw);
+      if(/巨無霸|giant|jumbo|mbx/i.test(r)) return '巨無霸';
+      if(/迷你|mini|mbs/i.test(r)) return '迷你機';
+      return '標準機';
+    }
     function inferCategory(name, raw){
-      const given=norm(raw); if(given) return given;
-      const up=(name||'').toUpperCase(); const giant=/巨無霸/.test(name)||up.startsWith('MBX'); const mini=/迷你/.test(name)||up.startsWith('MBS'); const exp=/貴/.test(name)||/\(貴\)/.test(name);
-      if(giant) return exp?'巨無霸(貴)':'巨無霸'; if(mini) return exp?'迷你機(貴)':'迷你機'; return exp?'標準機(貴)':'標準機';
+      if(raw) return normalizeCategory(raw);
+      const n = String(name||'');
+      if(/巨無霸|MBX/i.test(n)) return '巨無霸';
+      if(/迷你|MBS/i.test(n)) return '迷你機';
+      return '標準機';
     }
     function goodsToNames(goods){
       const s=norm(goods); if(!s) return '';
@@ -388,6 +387,7 @@
       const names=parts.map(x=>itemsDict.get(x)||x);
       return Array.from(new Set(names)).join(', ');
     }
+    const toPriceNum = v => Number(String(v??'').replace(/[^\d.\-]/g,'')) || 0;
 
     // 聚合
     function ingest(records){
@@ -410,78 +410,142 @@
       renderAll();
     }
 
-    // Tooltip
-    function makeTooltip(id){ const el=document.getElementById(id); return { show(html,x,y){ el.innerHTML=html; el.style.left=x+'px'; el.style.top=y+'px'; el.style.display='block'; }, hide(){ el.style.display='none'; } }; }
-    const tipLine=makeTooltip('lineTooltip'), tipBar=makeTooltip('barTooltip'), tipTrend=makeTooltip('trendTooltip');
+    // Tooltip工具
+    function showTip(id,html,x,y){ const el=document.getElementById(id); el.innerHTML=html; el.style.left=x+'px'; el.style.top=y+'px'; el.style.display='block'; }
+    function hideTip(id){ document.getElementById(id).style.display='none'; }
 
-    // 圖表類（略，同前版，保留 hover/十字線）
-    class DualLineChart{ constructor(c){ this.c=c; this.ctx=c.getContext('2d'); this.p={l:62,r:16,t:22,b:46}; this.points=[]; this.showMA=true; new ResizeObserver(()=>this.draw()).observe(c); this._bind(); }
+    // 圖表類（折線）
+    class DualLineChart{
+      constructor(c){ this.c=c; this.ctx=c.getContext('2d'); this.p={l:62,r:16,t:22,b:46}; this.points=[]; this.showMA=true; new ResizeObserver(()=>this.draw()).observe(c); this._bind(); }
       setData(pts){ this.points=pts; const ys=[...pts.map(p=>p.yTotal),...pts.map(p=>p.yPer)]; const yMin=Math.min(0,...ys), yMax=Math.max(1,...ys), pad=Math.max(1,(yMax-yMin)*0.1);
         this.yMin=Math.max(0,Math.floor(yMin-pad)); this.yMax=Math.ceil(yMax+pad); this.xMin=Math.min(...pts.map(p=>p.x)||[0]); this.xMax=Math.max(...pts.map(p=>p.x)||[1]); this.draw(); }
       reset(){ this.draw(); }
-      _x(x){ const r=this.c.getBoundingClientRect(), w=r.width-this.p.l-this.p.r; return this.p.l + (x-this.xMin)/(this.xMax-this.xMin||1)*w; }
+      _x(x){ const r=this.c.getBoundingClientRect(), w=r.width-this.p.l-this.p.r; return this.p.l+(x-this.xMin)/(this.xMax-this.xMin||1)*w; }
       _y(y){ const r=this.c.getBoundingClientRect(), h=r.height-this.p.t-this.p.b; return this.p.t + (1-(y-this.yMin)/(this.yMax-this.yMin||1))*h; }
       _ticks(min,max,c=5){ const span=max-min, raw=span/c, pow=10**Math.floor(Math.log10(raw||1)), m=[1,2,2.5,5,10]; let step=m[0]*pow; for(const v of m){ if(raw<=v*pow){ step=v*pow; break; } } const s=Math.ceil(min/step)*step, out=[]; for(let v=s; v<=max; v+=step) out.push(v); return out; }
-      _bind(){ this.c.addEventListener('mousemove',(e)=>{ if(!this.points.length){ tipLine.hide(); return; } const rect=this.c.getBoundingClientRect(); const mx=e.clientX-rect.left;
-          let bestIdx=0,bestDist=Infinity; for(let i=0;i<this.points.length;i++){ const dx=Math.abs(this._x(this.points[i].x)-mx); if(dx<bestDist){bestDist=dx; bestIdx=i;} }
-          const p=this.points[bestIdx], d=new Date(p.x); const html=`${formatOutDate(d.toISOString().slice(0,10))}<br/>總 HKD ${fmt(Math.round(p.yTotal))}<br/>機均 HKD ${fmt(Math.round(p.yPer))}<br/>機台數 ${p.cnt}`; tipLine.show(html,e.clientX,e.clientY-8); this._hoverIndex=bestIdx; this.draw(); });
-        this.c.addEventListener('mouseleave', ()=>{ tipLine.hide(); this._hoverIndex=null; this.draw(); }); }
-      draw(){ const {ctx}=this; const dpr=window.devicePixelRatio||1, r=this.c.getBoundingClientRect(); this.c.width=Math.round(r.width*dpr); this.c.height=Math.round(r.height*dpr); ctx.scale(dpr,dpr); ctx.clearRect(0,0,r.width,r.height);
-        const {l,r:rr,t,b}=this.p; const col=colorVars(); ctx.strokeStyle=col.grid; ctx.beginPath(); for(const y of this._ticks(this.yMin,this.yMax,5)){ const py=this._y(y); ctx.moveTo(l,py); ctx.lineTo(r.width-rr,py);} ctx.stroke();
-        ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim()||'#94a3b8'; ctx.font='12px ui-sans-serif, system-ui'; ctx.textAlign='right'; ctx.textBaseline='middle';
+      _bind(){
+        this.c.addEventListener('mousemove', (e)=>{
+          if(!this.points.length){ hideTip('lineTooltip'); return; }
+          const rect=this.c.getBoundingClientRect(); const mx=e.clientX-rect.left;
+          let bestIdx=0, bestDist=Infinity;
+          for(let i=0;i<this.points.length;i++){ const dx=Math.abs(this._x(this.points[i].x)-mx); if(dx<bestDist){bestDist=dx; bestIdx=i;} }
+          const p=this.points[bestIdx], d=new Date(p.x);
+          const html=`${formatOutDate(d.toISOString().slice(0,10))}<br/>總 HKD ${fmt(Math.round(p.yTotal))}<br/>機均 HKD ${fmt(Math.round(p.yPer))}<br/>機台數 ${p.cnt}`;
+          showTip('lineTooltip', html, e.clientX, e.clientY-8); this._hoverIndex=bestIdx; this.draw();
+        });
+        this.c.addEventListener('mouseleave', ()=>{ hideTip('lineTooltip'); this._hoverIndex=null; this.draw(); });
+      }
+      draw(){
+        const {ctx}=this; const dpr=window.devicePixelRatio||1, r=this.c.getBoundingClientRect(); this.c.width=Math.round(r.width*dpr); this.c.height=Math.round(r.height*dpr); ctx.scale(dpr,dpr);
+        ctx.clearRect(0,0,r.width,r.height); const {l,r:rr,t,b}=this.p; const grid='#233046';
+        // grid
+        ctx.strokeStyle=grid; ctx.beginPath(); for(const y of this._ticks(this.yMin,this.yMax,5)){ const py=this._y(y); ctx.moveTo(l,py); ctx.lineTo(r.width-rr,py);} ctx.stroke();
+        // y labels
+        ctx.fillStyle='#94a3b8'; ctx.font='12px ui-sans-serif, system-ui'; ctx.textAlign='right'; ctx.textBaseline='middle';
         for(const y of this._ticks(this.yMin,this.yMax,5)){ ctx.fillText(fmt(Math.round(y)), l-8, this._y(y)); }
-        ctx.textAlign='center'; ctx.textBaseline='top'; for(const p of this.points){ const d=new Date(p.x); ctx.fillText(`${d.getUTCMonth()+1}/${d.getUTCDate()}`, this._x(p.x), r.height-b+6); }
-        ctx.strokeStyle=col.line; ctx.lineWidth=2; ctx.beginPath(); let s=false; for(const p of this.points){ const x=this._x(p.x), y=this._y(p.yTotal); if(!s){ctx.moveTo(x,y); s=true;} else ctx.lineTo(x,y);} ctx.stroke();
-        ctx.strokeStyle=col.per; ctx.lineWidth=2; ctx.setLineDash([4,2]); ctx.beginPath(); s=false; for(const p of this.points){ const x=this._x(p.x), y=this._y(p.yPer); if(!s){ctx.moveTo(x,y); s=true;} else ctx.lineTo(x,y);} ctx.stroke(); ctx.setLineDash([]);
+        // x labels
+        ctx.textAlign='center'; ctx.textBaseline='top';
+        for(const p of this.points){ const d=new Date(p.x); ctx.fillText(`${d.getUTCMonth()+1}/${d.getUTCDate()}`, this._x(p.x), r.height-b+6); }
+        // total
+        ctx.strokeStyle='#22d3ee'; ctx.lineWidth=2; ctx.beginPath(); let s=false;
+        for(const p of this.points){ const x=this._x(p.x), y=this._y(p.yTotal); if(!s){ctx.moveTo(x,y); s=true;} else ctx.lineTo(x,y);} ctx.stroke();
+        // per
+        ctx.strokeStyle='#f59e0b'; ctx.lineWidth=2; ctx.setLineDash([4,2]); ctx.beginPath(); s=false;
+        for(const p of this.points){ const x=this._x(p.x), y=this._y(p.yPer); if(!s){ctx.moveTo(x,y); s=true;} else ctx.lineTo(x,y);} ctx.stroke(); ctx.setLineDash([]);
+        // MA
         if(this.showMA){ const base=this.points, k=7, ma=[]; for(let i=0;i<base.length;i++){ const a=Math.max(0,i-k+1); const part=base.slice(a,i+1); const avg=part.reduce((s,p)=>s+p.yTotal,0)/part.length; ma.push({x:base[i].x,y:avg}); }
-          ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--ma').trim()||'#a78bfa'; ctx.setLineDash([6,6]); ctx.lineWidth=1.6; ctx.beginPath(); s=false; for(const p of ma){ const x=this._x(p.x), y=this._y(p.y); if(!s){ctx.moveTo(x,y); s=true;} else ctx.lineTo(x,y);} ctx.stroke(); ctx.setLineDash([]); }
-        if(this._hoverIndex!=null){ const p=this.points[this._hoverIndex]; const x=this._x(p.x); ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(x,t); ctx.lineTo(x,r.height-b); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x, this._y(p.yTotal), 3, 0, 2*Math.PI); ctx.fill(); } } }
+          ctx.strokeStyle='#a78bfa'; ctx.setLineDash([6,6]); ctx.lineWidth=1.6; ctx.beginPath(); s=false;
+          for(const p of ma){ const x=this._x(p.x), y=this._y(p.y); if(!s){ctx.moveTo(x,y); s=true;} else ctx.lineTo(x,y);} ctx.stroke(); ctx.setLineDash([]); }
+        // crosshair
+        if(this._hoverIndex!=null){ const p=this.points[this._hoverIndex]; const x=this._x(p.x); ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(x,t); ctx.lineTo(x,r.height-b); ctx.stroke(); ctx.setLineDash([]); }
+      }
+    }
 
-    class BarChart{ constructor(c){ this.c=c; this.ctx=c.getContext('2d'); this.p={l:70,r:20,t:18,b:54}; this.data=[]; this.maxY=1; this.threshold=null; new ResizeObserver(()=>this.draw()).observe(c); this._bind(); }
+    // 長條圖
+    class BarChart{
+      constructor(c){ this.c=c; this.ctx=c.getContext('2d'); this.p={l:70,r:20,t:18,b:54}; this.data=[]; this.maxY=1; this.threshold=null; new ResizeObserver(()=>this.draw()).observe(c); this._bind(); }
       setData(d){ this.data=Array.isArray(d)?d.slice():[]; this.maxY=Math.max(1,...this.data.map(x=>x.total||0))*1.1; this.draw(); }
       setThreshold(v){ this.threshold=(v==null||isNaN(v))?null:Number(v); this.draw(); }
       _y(v){ const r=this.c.getBoundingClientRect(), h=r.height-this.p.t-this.p.b; return this.p.t+(1-v/this.maxY)*h; }
       _ticks(min,max,c=5){ const span=max-min, raw=span/c, pow=10**Math.floor(Math.log10(raw||1)), a=[1,2,2.5,5,10]; let step=a[0]*pow; for(const m of a){ if(raw<=m*pow){ step=m*pow; break; } } const t=[]; for(let v=0; v<=max; v+=step) t.push(v); return t; }
-      _bind(){ this.c.addEventListener('mousemove',(e)=>{ const rect=this.c.getBoundingClientRect(); const {l,r,t,b}=this.p; const plotW=rect.width-l-r; const n=this.data.length; if(!n){ tipBar.hide(); return; }
-          const cellW=plotW/n; const idx=Math.floor((e.clientX-rect.left-l)/cellW); if(idx<0||idx>=n){ tipBar.hide(); this._hover=-1; this.draw(); return; }
+      _bind(){
+        this.c.addEventListener('mousemove', (e)=>{
+          const rect=this.c.getBoundingClientRect(); const {l,r,t,b}=this.p; const plotW=rect.width-l-r; const n=this.data.length; if(!n){ hideTip('barTooltip'); return; }
+          const cellW=plotW/n; const idx=Math.floor((e.clientX-rect.left-l)/cellW); if(idx<0 || idx>=n){ hideTip('barTooltip'); this._hover=-1; this.draw(); return; }
           const d=this.data[idx]; this._hover=idx; this.draw();
           const html=`${d.name}<br/>HKD ${fmt(Math.round(d.total||0))}<br/>${d.category||''}${d.goods?'<br/>'+d.goods:''}${d.price?'<br/>單價 '+d.price:''}${d.listed?'<br/>上架 '+formatOutDate(d.listed):''}`;
-          tipBar.show(html, e.clientX, e.clientY-10); }); this.c.addEventListener('mouseleave', ()=>{ this._hover=-1; this.draw(); tipBar.hide(); }); }
-      draw(){ const ctx=this.ctx, dpr=window.devicePixelRatio||1, r=this.c.getBoundingClientRect(); this.c.width=Math.round(r.width*dpr); this.c.height=Math.round(r.height*dpr); ctx.scale(dpr,dpr); ctx.clearRect(0,0,r.width,r.height);
-        const {l,r:rr,t,b}=this.p, plotW=r.width-l-rr, plotH=r.height-t-b, col=colorVars(); ctx.strokeStyle=col.grid; ctx.beginPath(); for(const y of this._ticks(0,this.maxY,5)){ const py=this._y(y); ctx.moveTo(l,py); ctx.lineTo(r.width-rr,py);} ctx.stroke();
-        ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim()||'#94a3b8'; ctx.font='12px ui-sans-serif, system-ui'; ctx.textAlign='right'; ctx.textBaseline='middle'; for(const y of this._ticks(0,this.maxY,5)){ ctx.fillText(fmt(Math.round(y)), l-8, this._y(y)); }
+          showTip('barTooltip', html, e.clientX, e.clientY-10);
+        });
+        this.c.addEventListener('mouseleave', ()=>{ this._hover=-1; this.draw(); hideTip('barTooltip'); });
+      }
+      draw(){
+        const ctx=this.ctx, dpr=window.devicePixelRatio||1, r=this.c.getBoundingClientRect(); this.c.width=Math.round(r.width*dpr); this.c.height=Math.round(r.height*dpr); ctx.scale(dpr,dpr); ctx.clearRect(0,0,r.width,r.height);
+        const {l,r:rr,t,b}=this.p, plotW=r.width-l-rr, plotH=r.height-t-b;
+        // grid
+        ctx.strokeStyle='#233046'; ctx.beginPath(); for(const y of this._ticks(0,this.maxY,5)){ const py=this._y(y); ctx.moveTo(l,py); ctx.lineTo(r.width-rr,py);} ctx.stroke();
+        // y labels
+        ctx.fillStyle='#94a3b8'; ctx.font='12px ui-sans-serif, system-ui'; ctx.textAlign='right'; ctx.textBaseline='middle';
+        for(const y of this._ticks(0,this.maxY,5)){ ctx.fillText(fmt(Math.round(y)), l-8, this._y(y)); }
         if(!this.data.length){ ctx.fillStyle='#e5e7eb'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('無資料', r.width/2, r.height/2); return; }
+        // threshold
         if(this.threshold!=null){ const y=this._y(this.threshold); ctx.save(); ctx.strokeStyle='rgba(239,68,68,.9)'; ctx.setLineDash([6,6]); ctx.beginPath(); ctx.moveTo(l,y); ctx.lineTo(r.width-rr,y); ctx.stroke(); ctx.restore(); }
-        const n=this.data.length, barW=(plotW/n)*0.78, gap=(plotW/n)*0.22; let x=l+gap/2; const colorOf=cat=> cat==='標準機(貴)'?col.cStdX:cat==='巨無霸'?col.cGiant:cat==='巨無霸(貴)'?col.cGiantX:cat==='迷你機'?col.cMini:cat==='迷你機(貴)'?col.cMiniX:col.cStd;
-        for(let i=0;i<n;i++){ const d=this.data[i]; const bh=plotH*(Number(d.total||0)/this.maxY), y=t+(plotH-bh); ctx.fillStyle=colorOf(d.category); roundRect(ctx,x,y,barW,bh,6); ctx.fill(); if(i===this._hover){ ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=1; roundRect(ctx,x,y,barW,bh,6); ctx.stroke(); } x+=barW+gap; }
-        ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim()||'#94a3b8'; ctx.textAlign=n>18?'right':'center'; ctx.textBaseline='top'; x=l+gap/2;
-        for(let i=0;i<n;i++){ const d=this.data[i]; const lx=x+barW/2, ly=r.height-b+6; if(n>18){ ctx.save(); ctx.translate(lx,ly); ctx.rotate(-Math.PI/4); ctx.fillText(String(d.name),0,0); ctx.restore(); } else ctx.fillText(String(d.name),lx,ly); x+=barW+gap; } } }
+        // bars
+        const n=this.data.length, barW=(plotW/n)*0.78, gap=(plotW/n)*0.22; let x=l+gap/2;
+        const colorOf=cat=> cat==='巨無霸'?'#38bdf8':cat==='迷你機'?'#60a5fa':'#22d3ee';
+        for(let i=0;i<n;i++){
+          const d=this.data[i]; const bh=plotH*(Number(d.total||0)/this.maxY), y=t+(plotH-bh);
+          ctx.fillStyle=colorOf(d.category); roundRect(ctx,x,y,barW,bh,6); ctx.fill();
+          if(i===this._hover){ ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=1; roundRect(ctx,x,y,barW,bh,6); ctx.stroke(); }
+          x+=barW+gap;
+        }
+        // x labels
+        ctx.fillStyle='#94a3b8'; ctx.textAlign=n>18?'right':'center'; ctx.textBaseline='top'; x=l+gap/2;
+        for(let i=0;i<n;i++){ const d=this.data[i]; const lx=x+barW/2, ly=r.height-b+6;
+          if(n>18){ ctx.save(); ctx.translate(lx,ly); ctx.rotate(-Math.PI/4); ctx.fillText(String(d.name),0,0); ctx.restore(); } else ctx.fillText(String(d.name),lx,ly);
+          x+=barW+gap;
+        }
+      }
+    }
+    function roundRect(ctx,x,y,w,h,r){ const rr=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+rr,y); ctx.arcTo(x+w,y,x+w,y+h,rr); ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); ctx.closePath(); }
 
-    class MultiLine{ constructor(c){ this.c=c; this.ctx=c.getContext('2d'); this.p={l:62,r:16,t:22,b:46}; this.series=[]; new ResizeObserver(()=>this.draw()).observe(c); this._bind(); }
+    // 多線
+    class MultiLine{
+      constructor(c){ this.c=c; this.ctx=c.getContext('2d'); this.p={l:62,r:16,t:22,b:46}; this.series=[]; new ResizeObserver(()=>this.draw()).observe(c); this._bind(); }
       setData(series){ this.series=series; const ys=[]; series.forEach(s=>s.points.forEach(p=>ys.push(p.y))); const yMin=Math.min(0,...ys,0), yMax=Math.max(1,...ys,1), pad=Math.max(1,(yMax-yMin)*0.1);
         this.yMin=Math.max(0,Math.floor(yMin-pad)); this.yMax=Math.ceil(yMax+pad); const allX=series.flatMap(s=>s.points.map(p=>p.x)); this.xMin=Math.min(...allX)||0; this.xMax=Math.max(...allX)||1; this.draw(); }
       _x(x){ const r=this.c.getBoundingClientRect(), w=r.width-this.p.l-this.p.r; return this.p.l+(x-this.xMin)/(this.xMax-this.xMin||1)*w; }
       _y(y){ const r=this.c.getBoundingClientRect(), h=r.height-this.p.t-this.p.b; return this.p.t+(1-(y-this.yMin)/(this.yMax-this.yMin||1))*h; }
       _ticks(min,max,c=5){ const span=max-min; const raw=span/c; const pow=10**Math.floor(Math.log10(raw||1)); const mult=[1,2,2.5,5,10]; let step=mult[0]*pow; for(const m of mult){ if(raw<=m*pow){ step=m*pow; break; } } const start=Math.ceil(min/step)*step, out=[]; for(let v=start; v<=max; v+=step) out.push(v); return out; }
-      _bind(){ this.c.addEventListener('mousemove',(e)=>{ if(!this.series.length){ tipTrend.hide(); return; } const rect=this.c.getBoundingClientRect(); const mx=e.clientX-rect.left;
-          const base=this.series[0]?.points||[]; if(!base.length){ tipTrend.hide(); return; } let bestIdx=0,bestDist=Infinity; for(let i=0;i<base.length;i++){ const dx=Math.abs(this._x(base[i].x)-mx); if(dx<bestDist){bestDist=dx; bestIdx=i;} }
-          this._hoverIndex=bestIdx; this._hoverX=this._x(base[bestIdx].x);
-          const dateStr = new Date(base[bestIdx].x).toISOString().slice(0,10); const vals=this.series.map(s=>({name:s.name, v:s.points[bestIdx]?.y??0, goods:s.goods}));
+      _bind(){
+        this.c.addEventListener('mousemove', (e)=>{
+          if(!this.series.length){ hideTip('trendTooltip'); return; }
+          const rect=this.c.getBoundingClientRect(); const mx=e.clientX-rect.left;
+          const base=this.series[0]?.points||[]; if(!base.length){ hideTip('trendTooltip'); return; }
+          let bestIdx=0, bestDist=Infinity;
+          for(let i=0;i<base.length;i++){ const dx=Math.abs(this._x(base[i].x)-mx); if(dx<bestDist){bestDist=dx; bestIdx=i;} }
+          const dateStr = new Date(base[bestIdx].x).toISOString().slice(0,10);
+          const vals=this.series.map(s=>({name:s.name, v:s.points[bestIdx]?.y??0, goods:s.goods}));
           vals.sort((a,b)=>b.v-a.v);
           const html = `${formatOutDate(dateStr)}<br/>` + vals.slice(0,12).map(x=>`${x.name}: ${x.v.toFixed(2)}（${x.goods||'—'}）`).join('<br/>') + (vals.length>12?'<br/>…':'');
-          tipTrend.show(html, e.clientX, e.clientY-10); this.draw(); });
-        this.c.addEventListener('mouseleave', ()=>{ this._hoverIndex=null; this._hoverX=null; tipTrend.hide(); this.draw(); }); }
-      draw(){ const ctx=this.ctx, dpr=window.devicePixelRatio||1, r=this.c.getBoundingClientRect(); this.c.width=Math.round(r.width*dpr); this.c.height=Math.round(r.height*dpr); ctx.scale(dpr,dpr); ctx.clearRect(0,0,r.width,r.height);
-        const {l,r:rr,t,b}=this.p; const col=colorVars(); ctx.strokeStyle=col.grid; ctx.beginPath(); for(const y of this._ticks(this.yMin,this.yMax,5)){ const py=this._y(y); ctx.moveTo(l,py); ctx.lineTo(r.width-rr,py);} ctx.stroke();
-        ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim()||'#94a3b8'; ctx.font='12px ui-sans-serif, system-ui'; ctx.textAlign='right'; ctx.textBaseline='middle'; for(const y of this._ticks(this.yMin,this.yMax,5)){ ctx.fillText(fmt(Math.round(y)), l-8, this._y(y)); }
-        ctx.textAlign='center'; ctx.textBaseline='top'; const base=this.series[0]?.points||[]; for(const p of base){ const d=new Date(p.x); ctx.fillText(`${d.getUTCMonth()+1}/${d.getUTCDate()}`, this._x(p.x), r.height-b+6); }
-        const palette=['#22d3ee','#f59e0b','#34d399','#60a5fa','#a78bfa','#fb7185','#f97316','#10b981','#06b6d4','#ef4444','#eab308','#14b8a6','#8b5cf6','#f43f5e','#84cc16'];
+          showTip('trendTooltip', html, e.clientX, e.clientY-10); this._hoverX=this._x(base[bestIdx].x); this.draw();
+        });
+        this.c.addEventListener('mouseleave', ()=>{ hideTip('trendTooltip'); this._hoverX=null; this.draw(); });
+      }
+      draw(){
+        const ctx=this.ctx, dpr=window.devicePixelRatio||1, r=this.c.getBoundingClientRect(); this.c.width=Math.round(r.width*dpr); this.c.height=Math.round(r.height*dpr); ctx.scale(dpr,dpr); ctx.clearRect(0,0,r.width,r.height);
+        const {l,r:rr,t,b}=this.p; const grid='#233046';
+        ctx.strokeStyle=grid; ctx.beginPath(); for(const y of this._ticks(this.yMin,this.yMax,5)){ const py=this._y(y); ctx.moveTo(l,py); ctx.lineTo(r.width-rr,py);} ctx.stroke();
+        ctx.fillStyle='#94a3b8'; ctx.font='12px ui-sans-serif, system-ui'; ctx.textAlign='right'; ctx.textBaseline='middle';
+        for(const y of this._ticks(this.yMin,this.yMax,5)){ ctx.fillText(fmt(Math.round(y)), l-8, this._y(y)); }
+        ctx.textAlign='center'; ctx.textBaseline='top';
+        const base=this.series[0]?.points||[]; for(const p of base){ const d=new Date(p.x); ctx.fillText(`${d.getUTCMonth()+1}/${d.getUTCDate()}`, this._x(p.x), r.height-b+6); }
+        const palette=['#22d3ee','#38bdf8','#60a5fa','#a78bfa','#fb7185','#f97316','#10b981','#06b6d4','#ef4444','#eab308','#14b8a6','#8b5cf6'];
         this.series.forEach((s,i)=>{ ctx.strokeStyle=palette[i%palette.length]; ctx.lineWidth=2; ctx.beginPath(); let st=false; for(const p of s.points){ const x=this._x(p.x), y=this._y(p.y); if(!st){ctx.moveTo(x,y); st=true;} else ctx.lineTo(x,y);} ctx.stroke(); });
-        if(this._hoverX!=null){ ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(this._hoverX,t); ctx.lineTo(this._hoverX,r.height-b); ctx.stroke(); ctx.setLineDash([]); } } }
+        if(this._hoverX!=null){ ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(this._hoverX,t); ctx.lineTo(this._hoverX,r.height-b); ctx.stroke(); ctx.setLineDash([]); }
+      }
+    }
 
-    function roundRect(ctx,x,y,w,h,r){ const rr=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+rr,y); ctx.arcTo(x+w,y,x+w,y+h,rr); ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); ctx.closePath(); }
-
-    // 渲染主流程
+    // 渲染
     const lineChart=new DualLineChart(document.getElementById('lineChart'));
     const barChart=new BarChart(document.getElementById('barChart'));
     const trendChart=new MultiLine(document.getElementById('trendChart'));
@@ -490,9 +554,7 @@
       if(storeMachines.has(storeName)) return storeMachines.get(storeName);
       return S.byDate[date]?.machineSet?.size||0;
     }
-
     function recomputeThreshold(points){
-      // 合格線 = 期間平均機台營收 × 日數
       const days = points.length;
       const perAvg = points.length? points.reduce((s,p)=>s+p.yPer,0)/points.length : 0;
       return perAvg * days;
@@ -511,7 +573,6 @@
       });
       lineChart.setData(points);
 
-      // KPI
       const sumTotal=points.reduce((s,p)=>s+p.yTotal,0), avgDaily=points.length?sumTotal/points.length:0;
       const lastCnt=[...points].reverse().find(p=>p.cnt>0)?.cnt||0;
       const perAvg=points.length?points.reduce((s,p)=>s+p.yPer,0)/points.length:0;
@@ -520,26 +581,25 @@
       document.getElementById('kpiMachines').textContent=String(lastCnt||'—');
       document.getElementById('kpiPerMachineAvg').textContent=fmt(Math.round(perAvg));
 
-      // 合格線（新）
       thresholdHKD = recomputeThreshold(points);
       document.getElementById('autoThresholdPill').textContent = `合格線（機均×日數）：${fmt(Math.round(thresholdHKD||0))}`;
 
-      // 圖1表
       const tb=document.querySelector('#lineTable tbody'); tb.innerHTML='';
       points.forEach(p=>{
         const tr=document.createElement('tr'); tr.innerHTML=`<td>${formatOutDate(p.date)}</td><td>${fmt(Math.round(p.yTotal))}</td><td>${p.cnt||''}</td><td>${fmt(Math.round(p.yPer))}</td>`;
         tb.appendChild(tr);
       });
 
-      // 圖2資料
       const arr=Object.entries(S.byMachine).map(([name,obj])=>{
         let total=0; for(const d of dates) total+=obj.byDate[d]||0;
         const meta=machineMeta.get(name)||{};
-        return { name, total, category: inferCategory(name, meta.category), goods: goodsToNames(meta.goods||''), price: meta.price||'', listed: meta.listed||'' };
+        return { name, total,
+          category: inferCategory(name, meta.category),
+          goods: goodsToNames(meta.goods||''),
+          price: meta.price||'',
+          listed: meta.listed||'' };
       });
       renderBar(arr);
-
-      // 圖3
       renderTrend();
     }
 
@@ -549,16 +609,22 @@
       const sortBy=document.getElementById('sortBy').value;
       const topn=document.getElementById('topn').value;
       const q=(document.getElementById('searchBox').value||'').trim().toLowerCase();
+      const priceMin = document.getElementById('priceMin').value;
+      const priceMax = document.getElementById('priceMax').value;
       const thr=thresholdHKD;
 
-      let data = Array.isArray(arr)? arr.slice(): [];
+      let data = (Array.isArray(arr)? arr.slice(): []).map(d=>({ ...d, priceNum: toPriceNum(d.price) }));
+
       if(filterSeries!=='ALL') data = data.filter(d=>d.category===filterSeries);
       if(q) data = data.filter(d=> d.name.toLowerCase().includes(q) );
+      if(priceMin !== '') data = data.filter(d=> d.priceNum >= Number(priceMin));
+      if(priceMax !== '') data = data.filter(d=> d.priceNum <= Number(priceMax));
+
       if(passFilter!=='ALL' && typeof thr==='number' && !isNaN(thr)){
         data = data.filter(d=> passFilter==='PASS'? (Number(d.total||0)>=thr) : (Number(d.total||0)<thr) );
       }
 
-      const asDate=s=>Date.parse(s||'')||0, asNum=v=>Number(String(v??'').replace(/[^\d.\-]/g,''))||0;
+      const asDate=s=>Date.parse(s||'')||0;
       switch(sortBy){
         case 'name-asc': data.sort((a,b)=>String(a.name).localeCompare(String(b.name),'zh-Hant')); break;
         case 'name-desc': data.sort((a,b)=>String(b.name).localeCompare(String(a.name),'zh-Hant')); break;
@@ -566,8 +632,8 @@
         case 'total-asc': data.sort((a,b)=>Number(a.total||0)-Number(b.total||0)); break;
         case 'goods-asc': data.sort((a,b)=>String(a.goods||'').localeCompare(String(b.goods||''),'zh-Hant')); break;
         case 'goods-desc': data.sort((a,b)=>String(b.goods||'').localeCompare(String(a.goods||''),'zh-Hant')); break;
-        case 'price-asc': data.sort((a,b)=>asNum(a.price)-asNum(b.price)); break;
-        case 'price-desc': data.sort((a,b)=>asNum(b.price)-asNum(a.price)); break;
+        case 'price-asc': data.sort((a,b)=>a.priceNum-b.priceNum); break;
+        case 'price-desc': data.sort((a,b)=>b.priceNum-a.priceNum); break;
         case 'listed-asc': data.sort((a,b)=>asDate(a.listed)-asDate(b.listed)); break;
         case 'listed-desc': data.sort((a,b)=>asDate(b.listed)-asDate(a.listed)); break;
       }
@@ -596,7 +662,7 @@
       barChart.setThreshold(thr);
     }
 
-    // 走勢
+    // 走勢（分面/多線）
     let facetState={ page:1, pageSize:12, unifiedY:false };
 
     function getTrendFilteredMachines(){
@@ -656,15 +722,13 @@
     function renderTrendMulti(names){
       const S=stores.get(currentStore);
       const dates=Array.from(S.dates).filter(d=>d>=range.from && d<=range.to).sort();
-      const mode=document.getElementById('trendY').value;
 
       const series=names.map((name)=> {
         const by=S.byMachine[name]?.byDate||{};
-        const points=dates.map(d=>{ const h=by[d]||0; return {x:Date.parse(d+'T00:00:00Z'), y:h}; });
+        const points=dates.map(d=>({x:Date.parse(d+'T00:00:00Z'), y:(by[d]||0)}));
         const goods = goodsToNames((machineMeta.get(name)||{}).goods||'');
         return {name, goods, points};
       });
-      // 若模式為 GOODS，僅在 tooltip 內顯示貨品，不改 y 值（仍以 HKD 畫線）
       trendChart.setData(series);
     }
 
@@ -672,7 +736,6 @@
       const wrap=document.getElementById('facetWrap');
       const S=stores.get(currentStore);
       const dates=Array.from(S.dates).filter(d=>d>=range.from && d<=range.to).sort();
-      const mode=document.getElementById('trendY').value;
 
       const total=names.length;
       const pageSize=parseInt(document.getElementById('facetPageSize').value,10) || 12;
@@ -680,12 +743,10 @@
       const totalPages = Math.max(1, Math.ceil(Math.max(0,total)/pageSize));
       if(facetState.page>totalPages) facetState.page=totalPages;
       document.getElementById('facetPageInfo').textContent = `${facetState.page} / ${totalPages}`;
-      document.getElementById('facetControls').style.display='flex';
 
       const start=(facetState.page-1)*pageSize;
       const pageNames=names.slice(start, start+pageSize);
 
-      // 統一Y軸（HKD 模式才有意義）
       const unified = document.getElementById('facetUnifiedY').checked;
       let globalMax=1;
       if(unified){
@@ -705,7 +766,6 @@
         const by=S.byMachine[name]?.byDate||{};
         const vals=dates.map(d=> by[d]||0);
         const sum=vals.reduce((a,b)=>a+b,0);
-        const maxVal=Math.max(...vals,0), minVal=Math.min(...vals,0);
 
         const card=document.createElement('div'); card.className='facet-card';
         const title=document.createElement('div'); title.className='facet-title';
@@ -719,22 +779,21 @@
         const ctx=canvas.getContext('2d'); const dpr=window.devicePixelRatio||1; const W=canvas.clientWidth||220, H=120;
         canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr); ctx.scale(dpr,dpr);
         const p={l:28,r:8,t:10,b:20};
-        const yVals = vals;
-        const yMin = 0;
-        const yMax = unified ? globalMax : Math.max(1, ...yVals);
+        const yVals=vals;
+        const yMin=0;
+        const yMax= unified ? globalMax : Math.max(1, ...yVals);
         const xTo=(i)=> p.l + (i/(Math.max(1,dates.length-1))) * (W-p.l-p.r);
         const yTo=(v)=> p.t + (1-(v-yMin)/(yMax-yMin||1)) * (H-p.t-p.b);
 
         const grid='#233046';
         ctx.strokeStyle=grid; ctx.lineWidth=1; ctx.beginPath();
-        const ticks=5; for(let i=0;i<=ticks;i++){ const y=p.t + (i/ticks)*(H-p.t-p.b); ctx.moveTo(p.l,y); ctx.lineTo(W-p.r,y); } ctx.stroke();
+        const ticks=5; for(let i=0;i<=ticks;i++){ const y=p.t + (i/ticks)*(H-p.t-p.b); ctx.moveTo(p.l,y); ctx.lineTo(W-p.r,y);} ctx.stroke();
 
-        ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--line').trim()||'#22d3ee';
-        ctx.lineWidth=1.6; ctx.beginPath();
+        ctx.strokeStyle='#22d3ee'; ctx.lineWidth=1.6; ctx.beginPath();
         yVals.forEach((v,i)=>{ const x=xTo(i), y=yTo(v); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
         ctx.stroke();
 
-        ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim()||'#94a3b8'; ctx.font='10px ui-sans-serif, system-ui'; ctx.textAlign='center'; ctx.textBaseline='top';
+        ctx.fillStyle='#94a3b8'; ctx.font='10px ui-sans-serif, system-ui'; ctx.textAlign='center'; ctx.textBaseline='top';
         if(dates.length){ const first=new Date(Date.parse(dates[0]+'T00:00:00Z')); const last=new Date(Date.parse(dates[dates.length-1]+'T00:00:00Z'));
           ctx.fillText(`${first.getUTCMonth()+1}/${first.getUTCDate()}`, xTo(0), H-p.b+2);
           ctx.fillText(`${last.getUTCMonth()+1}/${last.getUTCDate()}`, xTo(dates.length-1), H-p.b+2);
@@ -742,30 +801,29 @@
 
         canvas.addEventListener('mousemove', (e)=>{
           const rect=canvas.getBoundingClientRect(); const mx=e.clientX-rect.left;
-          let best=0, bestDist=Infinity;
+          let best=0,bestDist=Infinity;
           for(let i=0;i<dates.length;i++){ const dx=Math.abs(xTo(i)-mx); if(dx<bestDist){bestDist=dx; best=i;} }
           const d=dates[best]; const h=by[d]||0;
           tip.innerHTML=`${formatOutDate(d)}<br/>HKD ${fmt(Math.round(h))}<br/>上架：${goods||'—'}`;
-          tip.style.left = xTo(best)+'px'; tip.style.top = (yTo(yVals[best])-8)+'px'; tip.style.display='block';
+          tip.style.left=xTo(best)+'px'; tip.style.top=(yTo(yVals[best])-8)+'px'; tip.style.display='block';
 
+          // 重繪 + 十字線
           ctx.clearRect(0,0,W,H);
           ctx.strokeStyle=grid; ctx.lineWidth=1; ctx.beginPath();
-          for(let i=0;i<=ticks;i++){ const y=p.t + (i/ticks)*(H-p.t-p.b); ctx.moveTo(p.l,y); ctx.lineTo(W-p.r,y); } ctx.stroke();
-          ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--line').trim()||'#22d3ee';
-          ctx.lineWidth=1.6; ctx.beginPath();
+          for(let i=0;i<=ticks;i++){ const y=p.t + (i/ticks)*(H-p.t-p.b); ctx.moveTo(p.l,y); ctx.lineTo(W-p.r,y);} ctx.stroke();
+          ctx.strokeStyle='#22d3ee'; ctx.lineWidth=1.6; ctx.beginPath();
           yVals.forEach((v,i)=>{ const x=xTo(i), y=yTo(v); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke();
           ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(xTo(best), p.t); ctx.lineTo(xTo(best), H-p.b); ctx.stroke(); ctx.setLineDash([]);
         });
         canvas.addEventListener('mouseleave', ()=>{
           tip.style.display='none';
-          const ctx2=canvas.getContext('2d'); ctx2.clearRect(0,0,W,H);
-          ctx2.strokeStyle=grid; ctx2.lineWidth=1; ctx2.beginPath(); for(let i=0;i<=ticks;i++){ const y=p.t + (i/ticks)*(H-p.t-p.b); ctx2.moveTo(p.l,y); ctx2.lineTo(W-p.r,y); } ctx2.stroke();
-          ctx2.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--line').trim()||'#22d3ee';
-          ctx2.lineWidth=1.6; ctx2.beginPath(); yVals.forEach((v,i)=>{ const x=xTo(i), y=yTo(v); if(i===0) ctx2.moveTo(x,y); else ctx2.lineTo(x,y); }); ctx2.stroke();
-          ctx2.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim()||'#94a3b8'; ctx2.font='10px ui-sans-serif, system-ui'; ctx2.textAlign='center'; ctx2.textBaseline='top';
+          ctx.clearRect(0,0,W,H);
+          ctx.strokeStyle=grid; ctx.lineWidth=1; ctx.beginPath(); for(let i=0;i<=ticks;i++){ const y=p.t + (i/ticks)*(H-p.t-p.b); ctx.moveTo(p.l,y); ctx.lineTo(W-p.r,y);} ctx.stroke();
+          ctx.strokeStyle='#22d3ee'; ctx.lineWidth=1.6; ctx.beginPath(); yVals.forEach((v,i)=>{ const x=xTo(i), y=yTo(v); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke();
+          ctx.fillStyle='#94a3b8'; ctx.font='10px ui-sans-serif, system-ui'; ctx.textAlign='center'; ctx.textBaseline='top';
           if(dates.length){ const first=new Date(Date.parse(dates[0]+'T00:00:00Z')); const last=new Date(Date.parse(dates[dates.length-1]+'T00:00:00Z'));
-            ctx2.fillText(`${first.getUTCMonth()+1}/${first.getUTCDate()}`, xTo(0), H-p.b+2);
-            ctx2.fillText(`${last.getUTCMonth()+1}/${last.getUTCDate()}`, xTo(dates.length-1), H-p.b+2);
+            ctx.fillText(`${first.getUTCMonth()+1}/${first.getUTCDate()}`, xTo(0), H-p.b+2);
+            ctx.fillText(`${last.getUTCMonth()+1}/${last.getUTCDate()}`, xTo(dates.length-1), H-p.b+2);
           }
         });
       });
@@ -793,14 +851,15 @@
       e.target.value='';
     });
 
-    // 下載模板（日期寫入為文字；StoresMachines: store|machines）
+    // 下載模板（日期為文字；StoresMachines: store|machines）
     document.getElementById('downloadTemplate').addEventListener('click', async ()=>{
       const XLSX = await loadXLSX(); const wb=XLSX.utils.book_new();
       const raw=[['統計日期','設備編號(可忽略)','設備類型(可忽略)','機台號','門市名稱','線下投幣'],
         ['2025/09/01','','','SWK08左','石圍角',1],
         ['2025/09/01','','','SWK04右','石圍角',17],
         ['2025/09/02','','','SWK08左','石圍角',8]];
-      const wsRaw = XLSX.utils.aoa_to_sheet(raw); wsRaw['A2'].t='s'; wsRaw['A3'].t='s'; wsRaw['A4'].t='s'; XLSX.utils.book_append_sheet(wb, wsRaw, 'RawLog');
+      const wsRaw=XLSX.utils.aoa_to_sheet(raw); wsRaw['A2'].t='s'; wsRaw['A3'].t='s'; wsRaw['A4'].t='s';
+      XLSX.utils.book_append_sheet(wb, wsRaw, 'RawLog');
 
       const sm=[['store','machines'],['石圍角',6],['葵芳',12],['MegaBox',8]];
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sm), 'StoresMachines');
@@ -810,8 +869,9 @@
 
       const meta=[['machine_name','category','goods','price','listed'],
         ['SWK08左','標準機','PDPC0001','$20','2025/09/01'],
-        ['SWK04右','巨無霸(貴)','PDPC0002','$30','2025/09/02']];
-      const wsMeta=XLSX.utils.aoa_to_sheet(meta); wsMeta['E2'].t='s'; wsMeta['E3'].t='s'; XLSX.utils.book_append_sheet(wb, wsMeta, 'MachinesMeta');
+        ['SWK04右','巨無霸','PDPC0002','$30','2025/09/02']];
+      const wsMeta=XLSX.utils.aoa_to_sheet(meta); wsMeta['E2'].t='s'; wsMeta['E3'].t='s';
+      XLSX.utils.book_append_sheet(wb, wsMeta, 'MachinesMeta');
 
       const out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); const blob=new Blob([out],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
       const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='FunFun_template.xlsx'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
@@ -822,7 +882,8 @@
     document.getElementById('storeSelect').addEventListener('change', e=>{ currentStore=e.target.value; renderAll(); });
     function setQuick(n){
       if(!currentStore||!stores.has(currentStore)) return; const S=stores.get(currentStore); const ds=Array.from(S.dates).sort(); if(!ds.length) return;
-      const to=ds[ds.length-1], toT=Date.parse(to), fromT=toT-(n-1)*86400000, fd=new Date(fromT); const f=new Date(Date.UTC(fd.getUTCFullYear(),fd.getUTCMonth(),fd.getUTCDate())).toISOString().slice(0,10);
+      const to=ds[ds.length-1], toT=Date.parse(to), fromT=toT-(n-1)*86400000, fd=new Date(fromT);
+      const f=new Date(Date.UTC(fd.getUTCFullYear(),fd.getUTCMonth(),fd.getUTCDate())).toISOString().slice(0,10);
       range.from=f; range.to=to; document.getElementById('fromDate').value=f; document.getElementById('toDate').value=to; renderAll();
     }
     document.getElementById('quick7').addEventListener('click', ()=>setQuick(7));
@@ -830,23 +891,23 @@
     document.getElementById('quick30').addEventListener('click', ()=>setQuick(30));
     document.getElementById('applyRange').addEventListener('click', ()=>{ const f=document.getElementById('fromDate').value, t=document.getElementById('toDate').value; if(f&&t&&f<=t){ range.from=f; range.to=t; renderAll(); } else toast('請選正確區間'); });
 
-    // 圖1
+    // 控制
     document.getElementById('toggleMA').addEventListener('click', ()=>{ lineChart.showMA=!lineChart.showMA; renderAll(); });
     document.getElementById('resetLineZoom').addEventListener('click', ()=> lineChart.reset());
 
-    // 圖2
     ['filterSeries','passFilter','sortBy','topn'].forEach(id=> document.getElementById(id).addEventListener('change', ()=>renderAll()));
-    document.getElementById('searchBox').addEventListener('input', ()=>renderAll());
+    ['searchBox','priceMin','priceMax'].forEach(id=> document.getElementById(id).addEventListener('input', ()=>renderAll()));
     document.getElementById('resetBar').addEventListener('click', ()=>{
       document.getElementById('filterSeries').value='ALL';
       document.getElementById('passFilter').value='ALL';
       document.getElementById('sortBy').value='name-asc';
       document.getElementById('topn').value='全部';
       document.getElementById('searchBox').value='';
+      document.getElementById('priceMin').value='';
+      document.getElementById('priceMax').value='';
       renderAll();
     });
 
-    // 圖3
     ['trendMode','trendY','trendCat','trendTopN','trendSort'].forEach(id=> document.getElementById(id).addEventListener('change', ()=>{ if(id==='trendMode'){ facetState.page=1; } renderTrend(); }));
     document.getElementById('trendSearch').addEventListener('input', ()=>{ facetState.page=1; renderTrend(); });
     document.getElementById('facetPageSize').addEventListener('change', ()=>{ facetState.page=1; renderTrend(); });
@@ -855,7 +916,7 @@
 
     // 初始
     document.getElementById('storeSelect').innerHTML='<option>（請先上載 XLSX）</option>';
-    document.getElementById('sortBy').value = 'name-asc';
+    document.getElementById('sortBy').value='name-asc';
   </script>
 </body>
 </html>
