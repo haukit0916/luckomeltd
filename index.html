@@ -7,10 +7,11 @@
   <style>
     :root{
       --bg:#0f172a; --panel:#111827; --text:#e5e7eb; --muted:#94a3b8; --grid:#233046;
-      --line:#22d3ee; --ma:#a78bfa; --line-per:#38bdf8;
-      /* 指定長條色：標準=紅、巨無霸=藍、迷你=綠 */
+      --line:#22d3ee; --ma:#a78bfa; --line-per:#f59e0b;
+
+      /* 長條色：標準=紅、巨無霸=藍、迷你=綠 */
       --bar-standard:#ef4444;  /* red-500 */
-      --bar-giant:#38bdf8; /* blue-400 */
+      --bar-giant:#38bdf8;     /* sky-400 */
       --bar-mini:#22c55e;      /* green-500 */
 
       --border:rgba(148,163,184,.2); --thead:rgba(255,255,255,.03); --highlight:rgba(255,255,255,.06);
@@ -131,7 +132,7 @@
       </div>
     </section>
 
-    <!-- 圖2：店×機（長條色依類別：紅/黃/綠） -->
+    <!-- 圖2：店×機 -->
     <section class="panel">
       <div class="title-row">
         <div class="title"><span class="badge">店×機：投幣量（HKD）＋貨品資訊</span></div>
@@ -294,43 +295,64 @@
     const stores=new Map();           // store -> {dates:Set, byDate, byMachine}
     const storeMachines=new Map();    // store -> machines
     let itemsDict=new Map();          // code -> name
+    let itemPriceMap=new Map();       // code -> price
     let machineMeta=new Map();        // machine_name -> {category, goods, price, listed}
     let currentStore=null, range={from:null,to:null};
     let thresholdHKD=null;            // 合格線（機均×日數）
 
-    // 解析 XLSX
+    // 解析 XLSX（含 Items.price 與 MachinesMeta.price 自動帶入）
     async function parseXlsx(file){
       const XLSX=await loadXLSX();
       const wb = XLSX.read(await file.arrayBuffer(),{type:'array'});
 
-      // Items
+      // Items：建立名稱與價格映射
+      itemsDict=new Map(); itemPriceMap=new Map();
       const itemsName=wb.SheetNames.find(n=>/^items$/i.test(n)||/物資/i.test(n));
       if(itemsName){
         const arr=XLSX.utils.sheet_to_json(wb.Sheets[itemsName],{header:1,raw:true,defval:''});
         const h=arr[0]?.map(x=>norm(x).toLowerCase())||[];
         const ic=h.findIndex(x=>['code','編號','物資編號','stockno','stock no','id'].includes(x));
         const iname=h.findIndex(x=>['name','品名','名稱','item name','物資名稱'].includes(x));
-        if(ic>-1 && iname>-1) itemsDict=new Map(arr.slice(1).map(r=>[norm(r[ic]), norm(r[iname])]).filter(([a,b])=>a&&b));
+        const ip=h.findIndex(x=>['price','單價','售價','價格'].includes(x));
+        if(ic>-1 && iname>-1){
+          for(const r of arr.slice(1)){
+            const code=norm(r[ic]); if(!code) continue;
+            const nm=norm(r[iname]);
+            const pv=(ip>-1)? Number(String(r[ip]).replace(/[^\d.\-]/g,'')) : NaN;
+            itemsDict.set(code, nm);
+            if(!Number.isNaN(pv)) itemPriceMap.set(code, pv);
+          }
+        }
       }
 
-      // MachinesMeta
-      const metaName=wb.SheetNames.find(n=>/^machinesmeta$/i.test(n) || /meta/i.test(n));
+      // MachinesMeta：price 空白時取 goods 第一個有效代碼的 price
       machineMeta.clear();
+      const metaName=wb.SheetNames.find(n=>/^machinesmeta$/i.test(n) || /meta/i.test(n));
       if(metaName){
         const arr=XLSX.utils.sheet_to_json(wb.Sheets[metaName],{header:1,raw:true,defval:''});
         const h=arr[0]?.map(x=>norm(x).toLowerCase())||[];
         const im=h.findIndex(x=>['machine_name','機台號','機器','name','machine'].includes(x));
         const ic=h.findIndex(x=>['category','分類','系列','機型'].includes(x));
         const ig=h.findIndex(x=>['goods','上架貨品','商品','品名','items'].includes(x));
-        const ip=h.findIndex(x=>['price','單價','售價'].includes(x));
+        const ip=h.findIndex(x=>['price','單價','售價','價格'].includes(x));
         const il=h.findIndex(x=>['listed','上架日期','上架','list_date','on_shelf'].includes(x));
-        arr.slice(1).forEach(r=>{
-          const key=norm(r[im]); if(!key) return;
+        for(const r of arr.slice(1)){
+          const key=norm(r[im]); if(!key) continue;
           const listedStd=parseExcelDate(r[il])||'';
-          // 類別收斂至三種
-          const cat = normalizeCategory(norm(r[ic]||''));
-          machineMeta.set(key,{category:cat, goods:norm(r[ig]||''), price:norm(r[ip]||''), listed:listedStd});
-        });
+          const goodsRaw=norm(r[ig]||'');
+          const codes = goodsRaw.replace(/[\n;]/g, ',').split(',').map(s=>norm(s)).filter(Boolean);
+          const firstCode = codes.find(c=> itemPriceMap.has(c) || itemsDict.has(c));
+          let priceCell = norm(r[ip]||'');
+          if(!priceCell && firstCode && itemPriceMap.has(firstCode)){
+            priceCell = String(itemPriceMap.get(firstCode)); // 只在空白時帶入
+          }
+          machineMeta.set(key,{
+            category: normalizeCategory(norm(r[ic]||'')),
+            goods: goodsRaw,
+            price: priceCell,
+            listed: listedStd
+          });
+        }
       }
 
       // StoresMachines
@@ -459,11 +481,9 @@
       }
     }
 
-    // 長條圖（顏色：標準=紅、巨無霸=黃、迷你=綠）
+    // 長條圖
     class BarChart{
-      constructor(c){ this.c=c; this.ctx=c.getContext('2d'); this.p={l:70,r:20,t:18,b:54}; this.data=[]; this.maxY=1; this.threshold=null; new ResizeObserver(()=>this.draw()).observe(c);
-        this._bind();
-      }
+      constructor(c){ this.c=c; this.ctx=c.getContext('2d'); this.p={l:70,r:20,t:18,b:54}; this.data=[]; this.maxY=1; this.threshold=null; new ResizeObserver(()=>this.draw()).observe(c); this._bind(); }
       setData(d){ this.data=Array.isArray(d)?d.slice():[]; this.maxY=Math.max(1,...this.data.map(x=>x.total||0))*1.1; this.draw(); }
       setThreshold(v){ this.threshold=(v==null||isNaN(v))?null:Number(v); this.draw(); }
       _y(v){ const r=this.c.getBoundingClientRect(), h=r.height-this.p.t-this.p.b; return this.p.t+(1-v/this.maxY)*h; }
@@ -536,7 +556,7 @@
         for(const y of this._ticks(this.yMin,this.yMax,5)){ ctx.fillText(fmt(Math.round(y)), l-8, this._y(y)); }
         ctx.textAlign='center'; ctx.textBaseline='top';
         const base=this.series[0]?.points||[]; for(const p of base){ const d=new Date(p.x); ctx.fillText(`${d.getUTCMonth()+1}/${d.getUTCDate()}`, this._x(p.x), r.height-b+6); }
-        const palette=['#22d3ee','#f59e0b','#22c55e','#a78bfa','#fb7185','#f97316','#10b981','#06b6d4','#ef4444','#eab308','#14b8a6','#8b5cf6'];
+        const palette=['#22d3ee','#38bdf8','#22c55e','#a78bfa','#fb7185','#f97316','#10b981','#06b6d4','#ef4444','#eab308','#14b8a6','#8b5cf6'];
         this.series.forEach((s,i)=>{ ctx.strokeStyle=palette[i%palette.length]; ctx.lineWidth=2; ctx.beginPath(); let st=false; for(const p of s.points){ const x=this._x(p.x), y=this._y(p.y); if(!st){ctx.moveTo(x,y); st=true;} else ctx.lineTo(x,y);} ctx.stroke(); });
         if(this._hoverX!=null){ ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(this._hoverX,t); ctx.lineTo(this._hoverX,r.height-b); ctx.stroke(); ctx.setLineDash([]); }
       }
@@ -847,7 +867,7 @@
       e.target.value='';
     });
 
-    // 下載模板（日期為文字；StoresMachines: store|machines）
+    // 下載模板（含 Items.price；MachinesMeta.price 可留空以自動帶入）
     document.getElementById('downloadTemplate').addEventListener('click', async ()=>{
       const XLSX = await loadXLSX(); const wb=XLSX.utils.book_new();
       const raw=[['統計日期','設備編號(可忽略)','設備類型(可忽略)','機台號','門市名稱','線下投幣'],
@@ -860,12 +880,16 @@
       const sm=[['store','machines'],['石圍角',6],['葵芳',12],['MegaBox',8]];
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sm), 'StoresMachines');
 
-      const items=[['code','name'],['PDPC0001','可口可樂'],['PDPC0002','雪碧']];
+      const items=[['code','name','price'],
+        ['PDPC0001','可口可樂',20],
+        ['PDPC0002','雪碧',30],
+        ['PDPC0003','芬達',25]];
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(items), 'Items');
 
       const meta=[['machine_name','category','goods','price','listed'],
-        ['SWK08左','標準機','PDPC0001','$20','2025/09/01'],
-        ['SWK04右','巨無霸','PDPC0002','$30','2025/09/02']];
+        ['SWK08左','標準機','PDPC0001','', '2025/09/01'],  // price 留空：自動帶 20
+        ['SWK04右','巨無霸','PDPC0002,PDPC0003','', '2025/09/02']  // 多代碼：取第一個 PDPC0002 的 30
+      ];
       const wsMeta=XLSX.utils.aoa_to_sheet(meta); wsMeta['E2'].t='s'; wsMeta['E3'].t='s';
       XLSX.utils.book_append_sheet(wb, wsMeta, 'MachinesMeta');
 
